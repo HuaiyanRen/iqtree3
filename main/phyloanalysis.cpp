@@ -5137,7 +5137,7 @@ void runPhyloAnalysis(Params &params, Checkpoint *checkpoint, IQTree *&tree, Ali
         alignment->printSiteInfo(site_info_file.c_str());
         cout << "Alignment sites statistics printed to " << site_info_file << endl;
     }
-
+    //alignment->getNPattern();
     /*************** initialize tree ********************/
     tree = newIQTree(params, alignment);
 
