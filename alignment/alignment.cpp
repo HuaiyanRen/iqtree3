@@ -911,7 +911,7 @@ Alignment::Alignment(NxsDataBlock *data_block, char *sequence_type, string model
     if (getNSeq() < 3) {
         outError("Alignment must have at least 3 sequences");
     }
-    
+
     countConstSite();
     
     if (Params::getInstance().compute_seq_composition) {
@@ -921,7 +921,7 @@ Alignment::Alignment(NxsDataBlock *data_block, char *sequence_type, string model
         << num_variant_sites-num_informative_sites << " singleton sites, "
         << (int)(frac_const_sites*getNSite()) << " constant sites" << endl;
     }
-    
+
     // Bug fix: automatically switch to PARS instead of PLL when #sites * #taxa > 2^31
     unsigned long int num_taxa_sites = static_cast<unsigned long int>(getNSeq()) * static_cast<unsigned long int>(getNSite());
     if (num_taxa_sites >= static_cast<unsigned long int>(INT_MAX) && Params::getInstance().start_tree != STT_PARSIMONY)
@@ -1173,7 +1173,7 @@ void Alignment::extractDataBlock(NxsCharactersBlock *data_block) {
     if (!data_block->GetMatrix()) {
         outError("MATRIX command undeclared or invalid");
     }
-    
+
     NxsCharactersBlock::DataTypesEnum data_type = (NxsCharactersBlock::DataTypesEnum)data_block->GetDataType();
     if (data_type == NxsCharactersBlock::continuous) {
         outError("Continuous characters not supported");
@@ -2876,7 +2876,7 @@ void Alignment::doReadClustal(char *filename, char *sequence_type, StrVector &se
     if (sequences.empty()) {
         throw "No sequences found. Please check input (e.g. newline character)";
     }
-    
+
     nseq = seq_names.size();
     nsite = sequences.front().length();
 }
@@ -3716,7 +3716,7 @@ void Alignment::printNexus(ostream &out, bool append, const char *aln_site_list,
     if (seq_type == SEQ_CODON) {
         final_length *= 3;
     }
-    
+
     out << "#nexus" << endl << "begin data;" << endl;
     out << "  dimensions ntax=" << getNSeq() << " nchar=" << final_length << ";" << endl;
     out << "  format datatype=";
@@ -3775,7 +3775,7 @@ void Alignment::printAlignment(InputType format, const char *file_name, bool app
         } else {
             out.open(file_name);
         }
-        
+
         printAlignment(format, out, file_name, append, aln_site_list, exclude_sites, ref_seq_name);
 
         out.close();
@@ -5634,13 +5634,13 @@ void Alignment::computeCodonFreq(StateFreqType freq, double *state_freq, double 
                     if (freq_params.find('/') != std::string::npos) {
                         separator = '/';
                     }
-                    
+
                     // validate the number of input params (
                     size_t num_separators = std::count(freq_params.begin(), freq_params.end(), separator);
                     if (num_separators != 3) {
                         outError("To use F1X4, please specify 4 frequencies by +F1X4{<freq_0>,...,<freq_3>} or let AliSim randomly generate the frequencies by +F1X4.");
                     }
-                    
+
                     // extract user-specified frequencies one by one
                     for (int i = 0; i < 4; i++)
                     {
@@ -5649,7 +5649,7 @@ void Alignment::computeCodonFreq(StateFreqType freq, double *state_freq, double 
                         if (ntfreq[i] < 0) {
                             outError("State frequency cannot be negative!");
                         }
-                        
+
                         // delete the current from freq_params
                         freq_params.erase(0, pos + 1);
                     }
@@ -5751,13 +5751,13 @@ void Alignment::computeCodonFreq(StateFreqType freq, double *state_freq, double 
                     if (freq_params.find('/') != std::string::npos) {
                         separator = '/';
                     }
-                    
+
                     // validate the number of input params (
                     size_t num_separators = std::count(freq_params.begin(), freq_params.end(), separator);
                     if (num_separators != 11) {
                         outError("To use F3X4, please specify 12 frequencies by +F3X4{<freq_0>,...,<freq_11>} or let AliSim randomly generate the frequencies by +F3X4.");
                     }
-                    
+
                     // extract user-specified frequencies one by one
                     for (int i = 0; i < 12; i++)
                     {
@@ -5766,7 +5766,7 @@ void Alignment::computeCodonFreq(StateFreqType freq, double *state_freq, double 
                         if (ntfreq[i] < 0) {
                             outError("State frequency cannot be negative!");
                         }
-                        
+
                         // delete the current from freq_params
                         freq_params.erase(0, pos + 1);
                     }
@@ -5837,7 +5837,7 @@ void Alignment::computeCodonFreq(StateFreqType freq, double *state_freq, double 
             if (fabs(sum) < 1e-5) {
                 outError("Sum of all state frequencies must be greater than zero!");
             }
-            
+
             for (int i = 0; i < 4; i++) {
                 ntfreq[i+j] /= sum;
             }
@@ -6135,7 +6135,7 @@ void Alignment::doSymTest(size_t vecid, vector<SymTestResult> &vec_sym, vector<S
             if (df_sym == 0) {
                 applicable = false;
             }
-            
+
             if (applicable) {
                 stat.pval_sym = chi2prob(df_sym, stat.chi2_sym);
                 if (stat.pval_sym < chi2_cutoff) {
@@ -6540,7 +6540,7 @@ bool Alignment::readSiteStateFreq(const char* site_freq_file)
                 }
             }
             convfreq(site_freq_entry); // regularize frequencies (eg if some freq = 0)
-            
+
             // 2016-02-01: now check for equality of sites with same site-pattern and same freq
             int prev_site = pattern_to_site[getPatternID(site_id[0])];
             if (site_id.size() == 1 && prev_site < site_id[0] && site_model[prev_site] != -1) {
@@ -6559,7 +6559,7 @@ bool Alignment::readSiteStateFreq(const char* site_freq_file)
                     aln_changed = true;
                 }
             }
-            
+
             if (site_model[site_id[0]] == site_state_freq.size()) {
                 site_state_freq.push_back(site_freq_entry);
             } else {
@@ -6661,7 +6661,7 @@ string Alignment::generateRef(StrVector &sequences)
     if (sequences.size() == 0 || sequences[0].length() == 0) {
         outError("Empty input sequences. Please check & try again!");
     }
-    
+
     // init dummy variables
     char NULL_CHAR = '\0';
     string ref_str (sequences[0].length(), NULL_CHAR);
@@ -6714,7 +6714,7 @@ string Alignment::generateRef(StrVector &sequences)
                 for (int pos_in_codon = 0; pos_in_codon < 3; ++pos_in_codon) {
                     ref_str[start_pos + pos_in_codon] = default_state_str[pos_in_codon];
                 }
-                
+
                 // move to the start of the next codon
                 i = start_pos + 3;
             }
@@ -6842,4 +6842,79 @@ void Alignment::outputMutation(ofstream &out, char state_char, int32_t pos, int3
         out << "\t" << length;
     }
     out << endl;
+}
+
+Alignment *createSUAlignment(Params &params,Alignment *alignment) {
+    cout << endl;
+    cout << "Generating ModelTamer subsample-upsampling alignments..." << endl;
+    cout << endl;
+
+    if (params.model_tamer_only) {
+        alignment = createAlignment(params.aln_file, params.sequence_type, params.intype, params.model_name);
+    }
+
+    int n_sub = params.model_tamer_sub;
+    int n_up = params.model_tamer_up;
+    std::mt19937 gen;
+    gen.seed(params.ran_seed);
+    int n_site = alignment->getNSite();
+    int n_target_site = static_cast<int>(ceil(params.model_tamer * n_site / 100.0)); //method 1: directly subsample sites
+
+    for (int i=0; i<n_sub; i++ ) {
+        if (params.model_tamer_method == 0) {
+            // original ModelTamer method
+            //1. estimated how many distinct pattern are needeed
+            int n_ptn = alignment->getNPattern();
+            int n_target_ptn = static_cast<int>(ceil(params.model_tamer * n_ptn / 100.0));
+
+            //2. initially subsample the estimated needed number of pattern
+            vector<int> init_sub_sites(n_site);
+            std::iota(init_sub_sites.begin(), init_sub_sites.end(), 0);
+            std::shuffle(init_sub_sites.begin(), init_sub_sites.end(), gen);
+            init_sub_sites.resize(n_target_ptn);
+            Alignment *init_sub_alignment = NULL;
+            init_sub_alignment = new Alignment();
+            init_sub_alignment ->extractSites(alignment, init_sub_sites);
+
+            //3. compute how many site are needed to subsample enough pattern
+            int n_init_ptn = init_sub_alignment->getNPattern();
+            n_target_site = (n_target_ptn * n_target_ptn + n_init_ptn - 1) / n_init_ptn; //ceil( (n_target_ptn/n_init_ptn) * n_target_ptn )
+
+            delete init_sub_alignment;
+        }
+        // else: method 1 has been done
+
+        // subsample sites
+        vector<int> sub_sites(n_site);
+        std::iota(sub_sites.begin(), sub_sites.end(), 0);
+        std::shuffle(sub_sites.begin(), sub_sites.end(), gen);
+        sub_sites.resize(n_target_site);
+
+        for (int j=0; j<n_up; j++) {
+            // upsample sites
+            std::uniform_int_distribution<int> dist(0, n_target_site-1);
+            vector<int> up_sites(n_site);
+            for (int k=0; k<n_site; k++) {
+                up_sites[k] = sub_sites[dist(gen)];
+            }
+
+            // create new alignment
+            Alignment *su_alignment = NULL;
+            su_alignment = new Alignment();
+            su_alignment->extractSites(alignment, up_sites);
+
+            double ptn_percent = 100.0*su_alignment->getNPattern()/alignment->getNPattern();
+            cout << ptn_percent << "% distinct site parttern are sampled in subsample round " << i+1 << " and upsample round " << j+1 << ". SU ";
+
+            string filename = (string)params.out_prefix + ".s" + to_string(i+1) + "u" + to_string(j+1) + ".phy";
+            su_alignment->printAlignment(params.aln_output_format, filename.c_str());
+
+            if (!params.model_tamer_only) {
+                return su_alignment;
+            }
+
+            delete su_alignment;
+        }
+    }
+    cout << endl;
 }

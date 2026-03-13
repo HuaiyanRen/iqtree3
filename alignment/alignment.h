@@ -437,7 +437,7 @@ public:
         if (expected_num_sites > -1) {
             site_pattern.resize(expected_num_sites);
         }
-        
+
         return site_pattern.size();
     }
 
@@ -1125,5 +1125,7 @@ void extractSiteID(Alignment *aln, const char* spec, IntVector &site_id, bool nt
  */
 Alignment *createAlignment(string aln_file, const char *sequence_type, InputType intype, string model_name);
 
+/***/
+Alignment *createSUAlignment(Params &params,Alignment *alignment = NULL);
 
 #endif
