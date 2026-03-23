@@ -3249,6 +3249,56 @@ void parseArg(int argc, char *argv[], Params &params) {
                 */
                 continue;
             }
+            if (strcmp(argv[cnt], "--modeltamer") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --modeltamer <percent|AUTO>";
+                if (strcmp(argv[cnt], "AUTO") == 0 || strcmp(argv[cnt], "auto") == 0) {
+                    params.model_tamer = -1; // AUTO: estimate percentage from data
+                } else {
+                    params.model_tamer = convert_double(argv[cnt]);
+                    if (params.model_tamer < 0 || params.model_tamer > 100)
+                        throw "--modeltamer percentage must be between 0 and 100";
+                }
+                continue;
+            }
+            if (strcmp(argv[cnt], "--modeltameronly") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --modeltameronly <percent>";
+                params.model_tamer = convert_double(argv[cnt]);
+                params.model_tamer_only = true;
+                if (params.model_tamer < 0 || params.model_tamer > 100)
+                    throw "--modeltameronly percentage must be between 0 and 100";
+                continue;
+            }
+            if (strcmp(argv[cnt], "--modeltamer-sub") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --modeltamer-sub <#subsampling-time>";
+                params.model_tamer_sub = convert_int(argv[cnt]);
+                if (params.model_tamer_sub < 1)
+                    throw "Wrong number of ModelTamer subsampling time for --modeltamer-sub. Must be at least 1";
+                continue;
+            }
+            if (strcmp(argv[cnt], "--modeltamer-up") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --modeltamer-up <#upsampling-time>";
+                params.model_tamer_up = convert_int(argv[cnt]);
+                if (params.model_tamer_up < 1)
+                    throw "Wrong number of ModelTamer upsampling time for --modeltamer-up. Must be at least 1";
+                continue;
+            }
+            if (strcmp(argv[cnt], "--modeltamer-method") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --modeltamer-method <0|1>";
+                params.model_tamer_method = convert_int(argv[cnt]);
+                if (params.model_tamer_method < 0 || params.model_tamer_method > 1)
+                    throw "Wrong option for --modeltamer-method. Only 0 or 1 is allowed.";
+                continue;
+            }
 			if (strcmp(argv[cnt], "-a") == 0) {
 				cnt++;
 				if (cnt >= argc)
@@ -7196,6 +7246,11 @@ void Params::setDefault() {
     opt_qmix_criteria = 2; // 1 : likelihood-ratio test; 2 : information criteria, like AIC, BIC
     opt_qmix_pthres = 0.05;
     check_combin_q_mat = true;
+    model_tamer = 100;
+    model_tamer_only = false;
+    model_tamer_sub = 1;
+    model_tamer_up = 1;
+    model_tamer_method = 0;
     gamma_shape = -1.0;
     min_gamma_shape = MIN_GAMMA_SHAPE;
     gamma_median = false;
@@ -7535,13 +7590,13 @@ void Params::setDefault() {
     mutation_file = "";
     site_starting_index = 0;
     mr_bayes_output = false; //merged from 19b1fdc
-    
+
     // ----------- SPRTA ----------
     compute_SPRTA = false;
     SPRTA_zero_branches = false;
     out_alter_spr = false;
     intree_str = "";
-    
+
     cmaple_use_local_ref = true;
     cmaple_output_MAT = false;
 }
