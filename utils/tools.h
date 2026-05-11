@@ -1641,6 +1641,21 @@ public:
     /** model defition file */
     char *model_def_file;
 
+    /** ModelTamer subsampling percentage (0-100). -1 for AUTO; 100 means disabled */
+    double model_tamer;
+
+    /** TRUE to run ModelTamer only (skip subsequent ModelFinder full evaluation) */
+    bool model_tamer_only;
+
+    /** number of ModelTamer subsampling rounds */
+    int model_tamer_sub;
+
+    /** number of ModelTamer upsampling rounds */
+    int model_tamer_up;
+
+    /** ModelTamer method (0 or 1) */
+    int model_tamer_method;
+
     /** TRUE to perform ModelOMatic method of Whelan et al. 2015 */
     bool modelomatic;
     
