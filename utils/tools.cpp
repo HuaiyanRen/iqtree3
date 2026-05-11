@@ -3249,6 +3249,10 @@ void parseArg(int argc, char *argv[], Params &params) {
                 */
                 continue;
             }
+            if (strcmp(argv[cnt], "-est-from-one") == 0 || strcmp(argv[cnt], "--est-from-one") == 0) {
+                params.est_from_one = true;
+                continue;
+            }
 			if (strcmp(argv[cnt], "-a") == 0) {
 				cnt++;
 				if (cnt >= argc)
@@ -7196,6 +7200,7 @@ void Params::setDefault() {
     opt_qmix_criteria = 2; // 1 : likelihood-ratio test; 2 : information criteria, like AIC, BIC
     opt_qmix_pthres = 0.05;
     check_combin_q_mat = true;
+    est_from_one = false;
     gamma_shape = -1.0;
     min_gamma_shape = MIN_GAMMA_SHAPE;
     gamma_median = false;

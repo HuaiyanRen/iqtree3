@@ -1763,6 +1763,12 @@ public:
     bool check_combin_q_mat;
 
     /**
+            estimate the DNA mixture model initialising from one class (like MixtureFinder way)
+     */
+    bool est_from_one;
+
+
+    /**
             shape parameter (alpha) of the Gamma distribution for site rates
      */
     double gamma_shape;
