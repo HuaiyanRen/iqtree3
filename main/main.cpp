@@ -2585,6 +2585,10 @@ int main(int argc, char *argv[]) {
         tree->gen_all_nni_trees();
     } else if (Params::getInstance().terrace_analysis) { /**Olga: Terrace analysis*/
         runterraceanalysis(Params::getInstance());
+    } else if (Params::getInstance().pd_subsample < 100 && Params::getInstance().aln_file) {
+        // PD-maximizing taxon subsampling: keep a percentage of taxa that maximizes
+        // phylogenetic diversity on a fast parsimony tree, output the sub-alignment
+        runPDSubsampleAnalysis(Params::getInstance());
     } else if (Params::getInstance().model_tamer < 100 && !Params::getInstance().model_tamer_only) {
         // ModelTamer workflow with model selection
         // Generate SU datasets and run model selection on each

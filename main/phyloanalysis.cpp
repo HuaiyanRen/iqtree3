@@ -34,6 +34,8 @@
 #include "alignment/superalignment.h"
 #include "alignment/superalignmentunlinked.h"
 #include "tree/iqtree.h"
+#include "pda/greedy.h"
+#include <algorithm>
 #include "tree/iqtreemix.h"
 #include "tree/iqtreemixhmm.h"
 #include "tree/phylotreemixlen.h"
@@ -6352,4 +6354,144 @@ void runModelTamerAnalysis(Params &params, Checkpoint *checkpoint) {
     alignment = tree->aln;
     delete tree;
     delete alignment;
+}
+
+/**
+ * Subsample a percentage of taxa from a single alignment.
+ * pd_subsample_method 1 (default) keeps a random subset; method 2 keeps the
+ * subset maximizing phylogenetic diversity on a fast parsimony tree.
+ */
+void runPDSubsampleAnalysis(Params &params) {
+    cout << endl << "Generating taxon subsample ("
+         << (params.pd_subsample_method == 1 ? "random" : "maximize PD")
+         << ")..." << endl;
+
+    // 1. Read the input alignment
+    Alignment *aln = createAlignment(params.aln_file, params.sequence_type,
+                                     params.intype, params.model_name);
+    int ntaxa = aln->getNSeq();
+    if (ntaxa < 3)
+        outError(ERR_FEW_TAXA);
+
+    // 2. Target number of taxa to keep
+    int k = (int) ceil(params.pd_subsample * ntaxa / 100.0);
+    if (k < 3) {
+        outWarning("Subsample too small; keeping at least 3 taxa");
+        k = 3;
+    }
+    if (k >= ntaxa) {
+        cout << "Requested subsample (" << k << " taxa) covers the whole alignment ("
+             << ntaxa << " taxa); nothing to subsample." << endl;
+        delete aln;
+        return;
+    }
+
+    // 3. Compute a fast initial parsimony tree on the alignment
+    cout << "Computing initial parsimony tree on " << ntaxa << " taxa..." << endl;
+    aln->orderPatternByNumChars(PAT_VARIANT); // required by the parsimony kernel
+    int *rstream;
+    init_random(params.ran_seed, false, &rstream);
+    PhyloTree ptree;
+    ptree.setParams(&params);
+    ptree.setParsimonyKernel(params.SSE);
+    int pars_score = ptree.computeParsimonyTree(nullptr, aln, rstream);
+    finish_random(rstream);
+    cout << "Parsimony score: " << pars_score << endl;
+
+    // The parsimony tree labels each leaf by its alignment sequence index
+    // (WT_TAXON_ID); we keep that labeling so we can map taxa back to the
+    // alignment after greedy selection.
+    string init_tree = ptree.getTreeString();
+
+    // 4. Read the parsimony tree into a PD tree for diversity computations.
+    Greedy greedy;
+    bool tree_rooted = false;
+    istringstream tree_in(init_tree);
+    greedy.readTree(tree_in, tree_rooted);
+    greedy.rooted = tree_rooted;
+
+    // full-tree PD (all taxa) on an unrooted tree is the total branch length
+    double full_pd = greedy.treeLength();
+
+    // 5. Select k taxa using the chosen method, then map them back to the
+    //    alignment sequence indices (each leaf label is its index, see above).
+    IntVector seq_id;       // selected alignment sequence indices
+    double sub_pd = 0.0;    // PD of the selected subset
+
+    if (params.pd_subsample_method == 1) {
+        // Method 1 (default): random subsample
+        cout << "Randomly selecting " << k << " of " << ntaxa << " taxa..." << endl;
+        vector<int> perm(ntaxa);
+        for (int i = 0; i < ntaxa; i++)
+            perm[i] = i;
+        std::mt19937 gen(params.ran_seed);
+        std::shuffle(perm.begin(), perm.end(), gen);
+        seq_id.assign(perm.begin(), perm.begin() + k);
+
+        // compute the PD of the random subset on the parsimony tree.
+        // index -> tree leaf node id, then sum branch lengths via calcPD.
+        NodeVector leaves;
+        greedy.getTaxa(leaves);
+        vector<int> nodeid_of_seq(ntaxa, -1);
+        for (NodeVector::iterator it = leaves.begin(); it != leaves.end(); it++)
+            nodeid_of_seq[atoi((*it)->name.c_str())] = (*it)->id;
+        Split id_set(greedy.leafNum);
+        for (IntVector::iterator it = seq_id.begin(); it != seq_id.end(); it++)
+            id_set.addTaxon(nodeid_of_seq[*it]);
+        greedy.calcPD(id_set);
+        sub_pd = id_set.getWeight();
+    } else {
+        // Method 2: greedily maximize PD. Greedy is exact on a tree.
+        cout << "Selecting " << k << " taxa maximizing phylogenetic diversity..." << endl;
+        int saved_sub_size = params.sub_size;
+        int saved_min_size = params.min_size;
+        bool saved_rooted = params.is_rooted;
+        params.sub_size = k;
+        params.min_size = 0;   // Greedy::run sets min_size = sub_size -> single result set
+        params.is_rooted = tree_rooted;
+
+        vector<PDTaxaSet> taxa_set;
+        greedy.run(params, taxa_set);
+
+        params.sub_size = saved_sub_size;
+        params.min_size = saved_min_size;
+        params.is_rooted = saved_rooted;
+
+        PDTaxaSet &best = taxa_set.back();
+        for (PDTaxaSet::iterator it = best.begin(); it != best.end(); it++) {
+            if (!(*it)->isLeaf() || (*it)->name == ROOT_NAME)
+                continue;
+            int id = atoi((*it)->name.c_str());
+            if (id < 0 || id >= ntaxa)
+                outError("Selected taxon index out of range: " + (*it)->name);
+            seq_id.push_back(id);
+        }
+        sub_pd = best.score;
+    }
+
+    double pd_fraction = (full_pd > 0) ? sub_pd / full_pd : 0.0;
+    cout << "Selected " << seq_id.size() << " taxa: PD = " << sub_pd
+         << " / " << full_pd << " (" << pd_fraction * 100.0
+         << "% of full-tree PD retained)" << endl;
+
+    // 6. Extract and write the sub-alignment
+    Alignment *sub_aln = new Alignment;
+    sub_aln->extractSubAlignment(aln, seq_id, 0);
+
+    string out_file = (string) params.out_prefix + ".pd_subaln.phy";
+    sub_aln->printAlignment(IN_PHYLIP, out_file.c_str());
+
+    // also save the initial parsimony tree for reference (leaves labeled by
+    // 0-based alignment sequence index)
+    string tree_file = (string) params.out_prefix + ".pd_subaln.treefile";
+    ofstream tree_out(tree_file.c_str());
+    tree_out << init_tree << endl;
+    tree_out.close();
+
+    cout << "Sub-alignment (" << sub_aln->getNSeq() << " taxa, "
+         << sub_aln->getNSite() << " sites) written to " << out_file << endl;
+    cout << "Initial parsimony tree written to " << tree_file << endl;
+
+    delete sub_aln;
+    delete aln;
 }

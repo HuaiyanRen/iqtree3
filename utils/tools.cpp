@@ -3299,6 +3299,24 @@ void parseArg(int argc, char *argv[], Params &params) {
                     throw "Wrong option for --modeltamer-method. Only 0 or 1 is allowed.";
                 continue;
             }
+            if (strcmp(argv[cnt], "--pdsubsample") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --pdsubsample <percent>";
+                params.pd_subsample = convert_double(argv[cnt]);
+                if (params.pd_subsample <= 0 || params.pd_subsample > 100)
+                    throw "--pdsubsample percentage must be between 0 and 100";
+                continue;
+            }
+            if (strcmp(argv[cnt], "--pdsubsample-method") == 0) {
+                cnt++;
+                if (cnt >= argc)
+                    throw "Use --pdsubsample-method <1|2>";
+                params.pd_subsample_method = convert_int(argv[cnt]);
+                if (params.pd_subsample_method < 1 || params.pd_subsample_method > 2)
+                    throw "--pdsubsample-method must be 1 (random) or 2 (maximize PD)";
+                continue;
+            }
 			if (strcmp(argv[cnt], "-a") == 0) {
 				cnt++;
 				if (cnt >= argc)
@@ -7251,6 +7269,8 @@ void Params::setDefault() {
     model_tamer_sub = 1;
     model_tamer_up = 1;
     model_tamer_method = 0;
+    pd_subsample = 100;
+    pd_subsample_method = 1;
     gamma_shape = -1.0;
     min_gamma_shape = MIN_GAMMA_SHAPE;
     gamma_median = false;

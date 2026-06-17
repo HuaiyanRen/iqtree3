@@ -1656,6 +1656,15 @@ public:
     /** ModelTamer method (0 or 1) */
     int model_tamer_method;
 
+    /** Phylogenetic-diversity taxon subsampling percentage (0-100).
+        100 means disabled. Keeps the percentage of taxa selected by
+        pd_subsample_method on a fast parsimony tree and writes the sub-alignment. */
+    double pd_subsample;
+
+    /** Taxon subsampling method for --pdsubsample.
+        1 = random selection (default); 2 = maximize phylogenetic diversity. */
+    int pd_subsample_method;
+
     /** TRUE to perform ModelOMatic method of Whelan et al. 2015 */
     bool modelomatic;
     

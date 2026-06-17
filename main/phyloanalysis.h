@@ -59,6 +59,15 @@ void runPhyloAnalysis(Params &params, Checkpoint *checkpoint, IQTree *&tree, Ali
  */
 void runModelTamerAnalysis(Params &params, Checkpoint *checkpoint);
 
+/**
+ * Subsample taxa from a single alignment by maximizing phylogenetic diversity (PD).
+ * Computes a fast parsimony tree on the input alignment, greedily selects the subset
+ * of taxa (of size ceil(percent * ntaxa / 100)) that maximizes PD on that tree, and
+ * writes the resulting sub-alignment to <prefix>.pd_subaln.phy.
+ * @param params program parameters (uses pd_subsample, aln_file, ran_seed, out_prefix)
+ */
+void runPDSubsampleAnalysis(Params &params);
+
 /*! \brief Run CMaple algorithm for phylogenetic inference (if suitable)
  *  @param params program parameters
  *  @return TRUE if CMaple algorithm is applicable for the input alignment
